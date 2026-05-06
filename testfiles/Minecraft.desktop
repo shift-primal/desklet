@@ -1,6 +1,7 @@
 [Desktop Entry]
-Name=Minecraft Java
-Exec=/usr/lib/jvm/java-11-openjdk/bin/java
-Type=Application
-NoDisplay=false
-MimeType=x-scheme-handler/discord-409416265891971072;
+Name = Minecraft Java
+Exec = /usr/lib/jvm/java-11-openjdk/bin/java
+Type = Application
+NoDisplay = false
+MimeType = x-scheme-handler/discord-409416265891971072;
+

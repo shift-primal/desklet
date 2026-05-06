@@ -4,21 +4,24 @@ from desktop_entry import DesktopEntry
 
 
 class EntryManager:
-    def __init__(self):
-        self.files: list[DesktopEntry] = self._scan_fs()
+    def __init__(self, testmode: bool = False):
+        self.files: list[DesktopEntry] = self._scan_fs(testmode)
 
     @staticmethod
-    def _scan_fs():
+    def _scan_fs(testmode: bool):
         rootPath = "/usr/share/applications"
         localPath = Path.home() / ".local/share/applications"
+        testPath = "./testfiles"
         patt = "*.desktop"
 
-        rootFiles = Path(rootPath).glob(patt)
-        localFiles = Path(localPath).glob(patt)
+        if testmode:
+            files = Path(testPath).glob(patt)
+        else:
+            files = chain(Path(rootPath).glob(patt), Path(localPath).glob(patt))
 
         result: dict[str, DesktopEntry] = {}
 
-        for file in chain(rootFiles, localFiles):
+        for file in files:
             result[file.name] = DesktopEntry(str(file))
 
         return list(result.values())

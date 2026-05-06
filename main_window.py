@@ -14,7 +14,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.entry_manager: EntryManager = EntryManager()
+        self.entry_manager: EntryManager = EntryManager(testmode=True)
         self.list_widget: QListWidget = QListWidget()
         self.editor_widget: EntryEditor = EntryEditor()
 
@@ -26,14 +26,13 @@ class MainWindow(QMainWindow):
         splitter: QSplitter = QSplitter(Qt.Orientation.Horizontal)
 
         splitter.addWidget(self.list_widget)
-        _ = self.list_widget.currentItemChanged.connect(  # pyright: ignore[reportUnknownMemberType]
-            self.on_entry_selected
-        )
+        _ = self.list_widget.currentItemChanged.connect(self.on_entry_selected)
         splitter.addWidget(self.editor_widget)
 
         self.setCentralWidget(splitter)
 
-        splitter.setSizes([800, 500])  # pyright: ignore[reportUnknownMemberType]
+        splitter.setSizes([800, 500])
+        splitter.setContentsMargins(30, 30, 30, 30)
 
         self.populate_list()
 
@@ -42,6 +41,4 @@ class MainWindow(QMainWindow):
             self.list_widget.addItem(f.name)
 
     def on_entry_selected(self, _item: QListWidgetItem | None):
-        self.editor_widget.update_entry(
-            self.entry_manager.files[self.list_widget.currentRow()]
-        )
+        self.editor_widget.update_entry(self.entry_manager.files[self.list_widget.currentRow()])
