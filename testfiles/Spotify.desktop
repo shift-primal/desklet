@@ -5,5 +5,5 @@ Exec = spotify_player
 Icon = spotify
 Terminal = true
 Type = Application
-NoDisplay = false
+NoDisplay = true
 

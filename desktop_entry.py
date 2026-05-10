@@ -27,32 +27,20 @@ class DesktopEntry:
         parser.optionxform = str  # pyright: ignore[reportAttributeAccessIssue]
         return parser
 
-    def set_name(self, name: str) -> None:
-        self.config["Desktop Entry"]["Name"] = name if name else ""
-        with open(self.path, "w") as f:
-            self.config.write(f)
-        self.name = name
+    CONFIG_KEYS: dict[str, str] = {
+        "name": "Name",
+        "comment": "Comment",
+        "executable": "Exec",
+        "terminal": "Terminal",
+        "hidden": "NoDisplay",
+    }
 
-    def set_comment(self, name: str) -> None:
-        self.config["Desktop Entry"]["Comment"] = name if name else ""
+    def set_field(self, attr: str, value: str | bool) -> None:
+        config_key = self.CONFIG_KEYS[attr]
+        if isinstance(value, bool):
+            self.config["Desktop Entry"][config_key] = "true" if value else "false"
+        else:
+            self.config["Desktop Entry"][config_key] = value or ""
         with open(self.path, "w") as f:
             self.config.write(f)
-        self.comment = name
-
-    def set_executable(self, name: str) -> None:
-        self.config["Desktop Entry"]["Exec"] = name if name else ""
-        with open(self.path, "w") as f:
-            self.config.write(f)
-        self.executable = name
-
-    def set_terminal(self, terminal: bool) -> None:
-        self.config["Desktop Entry"]["NoDisplay"] = "true" if terminal else "false"
-        with open(self.path, "w") as f:
-            self.config.write(f)
-        self.terminal = terminal
-
-    def set_hidden(self, hidden: bool) -> None:
-        self.config["Desktop Entry"]["NoDisplay"] = "true" if hidden else "false"
-        with open(self.path, "w") as f:
-            self.config.write(f)
-        self.hidden = hidden
+        setattr(self, attr, value)

@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from functools import partial
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QFormLayout,
@@ -11,18 +12,18 @@ from PyQt6.QtWidgets import (
 
 from desktop_entry import DesktopEntry
 
-entries = {
-    "name": {"label": "Name", "type": "line"},
-    "comment": {"label": "Comment", "type": "line"},
-    "executable": {"label": "Executable", "type": "line"},
-    "terminal": {"label": "Terminal", "type": "checkbox"},
-    "hidden": {"label": "Hidden", "type": "checkbox"},
-}
-
 
 class EntryEditor(QWidget):
     def __init__(self):
         super().__init__()
+
+        self.entries: dict[str, dict[str, str]] = {
+            "name": {"label": "Name", "type": "line"},
+            "comment": {"label": "Comment", "type": "line"},
+            "executable": {"label": "Executable", "type": "line"},
+            "terminal": {"label": "Terminal", "type": "checkbox"},
+            "hidden": {"label": "Hidden", "type": "checkbox"},
+        }
 
         self.box_layout: QVBoxLayout = QVBoxLayout()
         self.title_label: QLabel = QLabel()
@@ -49,31 +50,31 @@ class EntryEditor(QWidget):
     def _make_checkbox(self, active: bool, callback: Callable[[bool], None]) -> QCheckBox:
         checkbox = QCheckBox()
         checkbox.setChecked(active)
-        _ = checkbox.stateChanged.connect(lambda state: callback(bool()))
+        _ = checkbox.stateChanged.connect(lambda state: callback(bool(state)))
 
         return checkbox
-
-    def _add_rows(self, rowElements: list[tuple[str, QWidget]]):
-        for l, w in rowElements:
-            self.form.addRow(l, w)
 
     def update_entry(self, entry: DesktopEntry):
         self.title_label.setText(entry.name)
         self.clear_entries()
 
-        line_name = self._make_line_edit(entry.name, entry.set_name)
-        line_comment = self._make_line_edit(entry.comment, entry.set_comment)
-        line_executable = self._make_line_edit(entry.executable, entry.set_executable)
-        checkbox_terminal = self._make_checkbox(entry.terminal, entry.set_terminal)
-        checkbox_hidden = self._make_checkbox(entry.hidden, entry.set_hidden)
+        row_entries: list[tuple[str, QWidget]] = []
 
-        rowElements = []
+        for k, v in self.entries.items():
+            entry_key = getattr(entry, k)  # pyright: ignore[reportAny]
+            entry_callback = partial(entry.set_field, k)
+            entry_label = v["label"]
+            widget_type = v["type"]
 
-        self.form.addRow("Name", line_name)
-        self.form.addRow("Comment", line_comment)
-        self.form.addRow("Exec", line_executable)
-        self.form.addRow("Terminal", checkbox_terminal)
-        self.form.addRow("Hidden", checkbox_hidden)
+            if widget_type == "line":
+                widget = self._make_line_edit(entry_key, entry_callback)  # pyright: ignore[reportAny]
+            else:
+                widget = self._make_checkbox(entry_key, entry_callback)  # pyright: ignore[reportAny]
+
+            row_entries.append((entry_label, widget))
+
+        for l, w in row_entries:
+            self.form.addRow(l, w)
 
     def clear_entries(self):
         while self.form.count():
