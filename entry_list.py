@@ -68,9 +68,16 @@ class EntryList(QListWidget):
 
         menu = QMenu(self)
         hide_action = menu.addAction("Hide selected")
-        if hide_action and menu.exec(self.mapToGlobal(pos)):
+        unhide_action = menu.addAction("Unhide selected")
+
+        triggered = menu.exec(self.mapToGlobal(pos))
+        if triggered == hide_action:
             for row in rows:
                 self.entry_manager.files[row].set_field("hidden", True)
+            self.refresh()
+        elif triggered == unhide_action:
+            for row in rows:
+                self.entry_manager.files[row].set_field("hidden", False)
             self.refresh()
 
     def _on_item_changed(self, _item: QListWidgetItem | None):
