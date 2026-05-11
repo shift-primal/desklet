@@ -23,12 +23,12 @@ def resolve_icon_theme(theme: str) -> str:
     return "hicolor"
 
 
-def find_app_icon(name: str, theme: str) -> QIcon:
+def find_icon(name: str, theme: str, min_size: int = 48) -> QIcon:
     if "/" in name:
         return QIcon(name)
 
     for base in [Path.home() / ".local/share/icons", Path("/usr/share/icons")]:
-        for size in (256, 128, 64, 48):
+        for size in (s for s in (256, 128, 64, 48) if s >= min_size):
             for ext in ("svg", "png"):
                 path = base / theme / "apps" / str(size) / f"{name}.{ext}"
                 if path.exists():

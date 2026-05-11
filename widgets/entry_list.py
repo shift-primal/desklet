@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QHBoxLayout, QLabel, QListWidget, QListWidgetItem, Q
 from config import Config
 from desktop_entry import DesktopEntry
 from entry_manager import EntryManager
-from utils.icons import find_app_icon
+from utils.icons import find_icon
 
 
 class EntryList(QListWidget):
@@ -29,22 +29,9 @@ class EntryList(QListWidget):
         layout: QHBoxLayout = QHBoxLayout(widget)
         layout.setContentsMargins(4, 2, 4, 2)
 
-        icon_label: QLabel = QLabel()
-
-        icon: QIcon
-
-        if file.icon and QIcon.hasThemeIcon(file.icon):
-            icon = find_app_icon(file.icon, QIcon.themeName())
-        else:
-            icon = QIcon.fromTheme("error")
-
-        icon_label.setPixmap(icon.pixmap(24, 24))
-
-        name_label: QLabel = QLabel(file.name)
-        name_label.setStyleSheet("font-size: 16px;")
-
-        eye_text = "X" if file.hidden else "O"
-        eye_label: QLabel = QLabel(eye_text)
+        icon_label = self._get_file_icon(file.icon)
+        name_label = self._make_name_label(file.name)
+        eye_label = self._get_eye_icon(file.hidden)
 
         layout.addWidget(icon_label)
         layout.addWidget(name_label)
@@ -52,6 +39,34 @@ class EntryList(QListWidget):
         layout.addWidget(eye_label)
 
         return widget
+
+    def _get_file_icon(self, file_icon: str | None) -> QLabel:
+        icon_label: QLabel = QLabel()
+        icon: QIcon
+
+        if file_icon and QIcon.hasThemeIcon(file_icon):
+            icon = find_icon(file_icon, QIcon.themeName(), 8)
+        else:
+            icon = QIcon.fromTheme("error")
+
+        icon_label.setPixmap(icon.pixmap(24, 24))
+
+        return icon_label
+
+    def _get_eye_icon(self, hidden: bool) -> QLabel:
+        eye_icon_name = "unhide" if hidden else "hide_table_column"
+        eye_icon: QIcon = QIcon.fromTheme(eye_icon_name, find_icon(eye_icon_name, QIcon.themeName(), 8))
+        print(QIcon.themeName())
+        eye_label: QLabel = QLabel()
+        eye_label.setPixmap(eye_icon.pixmap(24, 24))
+
+        return eye_label
+
+    def _make_name_label(self, file_name: str) -> QLabel:
+        name_label: QLabel = QLabel(file_name)
+        name_label.setStyleSheet("font-size: 16px;")
+
+        return name_label
 
     def _make_list_item(self) -> QListWidgetItem:
         item: QListWidgetItem = QListWidgetItem()
