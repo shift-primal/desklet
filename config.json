@@ -1,0 +1,11 @@
+{
+    "settings": {
+        "test_mode": true,
+        "scan_pattern": "*.desktop*"
+    },
+
+    "scan_paths": {
+        "default": ["/usr/share/applications", "~/.local/share/applications"],
+        "test": "./testfiles"
+    }
+}

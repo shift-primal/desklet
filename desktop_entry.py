@@ -1,14 +1,17 @@
-from configparser import ConfigParser
+from configparser import ConfigParser, SectionProxy
 
 
 class DesktopEntry:
-    def __init__(self, path: str):
+    def __init__(self, path: str) -> None:
         self.path: str = path
-        self.config: ConfigParser = self._make_parser()
-        _ = self.config.read(path)
+        self.parser: ConfigParser = self._make_parser()
 
-        entry = self.config["Desktop Entry"]
-        categories = entry.get("Categories")
+        with open(path, encoding="utf-8") as f:
+            self.parser.read_file(f)
+
+        entry: SectionProxy = self.parser["Desktop Entry"]
+
+        categories: str | None = entry.get("Categories")
 
         self.name: str = entry["Name"]
         self.comment: str | None = entry.get("Comment")
@@ -16,31 +19,36 @@ class DesktopEntry:
         self.icon: str | None = entry.get("Icon")
         self.terminal: bool = entry.get("Terminal") == "true"
         self.entry_type: str = entry["Type"]
-        self.categories: list[str] | None = (
-            [x for x in categories.split(";") if x] if categories else None
-        )
+        self.categories: list[str] | None = [x for x in categories.split(";") if x] if categories else None
         self.hidden: bool = entry.get("NoDisplay") == "true"
 
-    @staticmethod
-    def _make_parser() -> ConfigParser:
-        parser = ConfigParser(interpolation=None)
-        parser.optionxform = str  # pyright: ignore[reportAttributeAccessIssue]
-        return parser
-
-    CONFIG_KEYS: dict[str, str] = {
+    DESKTOP_ENTRY_KEYS: dict[str, str] = {
         "name": "Name",
         "comment": "Comment",
         "executable": "Exec",
         "terminal": "Terminal",
         "hidden": "NoDisplay",
+        "entry_type": "Type",
+        "categories": "Categories",
+        "icon": "Icon",
     }
 
+    @staticmethod
+    def _make_parser() -> ConfigParser:
+        parser: ConfigParser = ConfigParser(interpolation=None)
+        parser.optionxform = str  # pyright: ignore[reportAttributeAccessIssue]
+
+        return parser
+
     def set_field(self, attr: str, value: str | bool) -> None:
-        config_key = self.CONFIG_KEYS[attr]
+        desktop_entry_key: str = self.DESKTOP_ENTRY_KEYS[attr]
+
         if isinstance(value, bool):
-            self.config["Desktop Entry"][config_key] = "true" if value else "false"
+            self.parser["Desktop Entry"][desktop_entry_key] = "true" if value else "false"
         else:
-            self.config["Desktop Entry"][config_key] = value or ""
-        with open(self.path, "w") as f:
-            self.config.write(f)
+            self.parser["Desktop Entry"][desktop_entry_key] = value
+
+        with open(self.path, "w", encoding="utf-8") as f:
+            self.parser.write(f)
+
         setattr(self, attr, value)
